@@ -2,6 +2,7 @@ package fr.lernejo.navy_battle;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import fr.lernejo.navy_battle.prototypes.Coordinates;
 import fr.lernejo.navy_battle.prototypes.GameMap;
 import fr.lernejo.navy_battle.prototypes.Option;
 import fr.lernejo.navy_battle.prototypes.ServerInfo;
@@ -20,12 +21,13 @@ import java.util.concurrent.Executors;
 public class Launcher {
     private final HttpClient client = HttpClient.newHttpClient();
 
-    private final Option<GameMap> map = new Option<>();
+    private final Option<GameMap> localMap = new Option<>();
+    private final Option<GameMap> remoteMap = new Option<>();
     private final Option<ServerInfo> localServer = new Option<>();
     private final Option<ServerInfo> remoteServer = new Option<>();
 
     public static void main(String[] args) {
-        try {new GameMap();
+        try {
             if (args.length == 0) {
                 System.err.println("Usage: Launcher [port] {server_url}");
                 System.exit(-1);
@@ -57,6 +59,7 @@ public class Launcher {
         server.setExecutor(Executors.newSingleThreadExecutor());
         server.createContext("/ping", this::handlePing);
         server.createContext("/api/game/start", s -> startGame(new RequestHandler(s)));
+        server.createContext("/api/game/fire", s -> handleFire(new RequestHandler(s)));
         server.start();
     }
 
@@ -78,7 +81,8 @@ public class Launcher {
     public void startGame(RequestHandler handler) throws IOException {
         try {
             remoteServer.set(ServerInfo.fromJSON(handler.getJSONObject()));
-            map.set(new GameMap());
+            localMap.set(new GameMap(true));
+            remoteMap.set(new GameMap(false));
             System.out.println("Will fight against " + remoteServer.get().getUrl());
 
             handler.sendJSON(202, localServer.get().toJSON());
@@ -94,7 +98,8 @@ public class Launcher {
      */
     public void requestStart(String server) {
         try {
-            map.set(new GameMap());
+            localMap.set(new GameMap(true));
+            remoteMap.set(new GameMap(false));
             var response = sendHTTPRequest(server + "/api/game/start", this.localServer.get().toJSON());
 
             this.remoteServer.set(ServerInfo.fromJSON(response));
@@ -103,6 +108,27 @@ public class Launcher {
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Failed to start game!");
+        }
+    }
+
+    /**
+     * Handle fire request
+     */
+    public void handleFire(RequestHandler handler) throws IOException {
+        try {
+            String cell = handler.getQueryParameter("cell");
+            var pos = new Coordinates(cell);
+
+            var res = localMap.get().hit(pos);
+
+            var response = new JSONObject();
+            response.put("consequence", res.toAPI());
+            response.put("shipLeft", localMap.get().hasShipLeft());
+
+            handler.sendJSON(200, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            handler.sendString(400, e.getMessage());
         }
     }
 

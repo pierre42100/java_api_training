@@ -1,22 +1,21 @@
 package fr.lernejo.navy_battle.prototypes;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GameMap {
     private final Integer[] BOATS = {5, 4, 3, 3, 2};
     private final GameCell[][] map = new GameCell[10][10];
+    private final List<List<Coordinates>> boats = new ArrayList<>();
 
-    public GameMap() {
+    public GameMap(boolean fill) {
         for (GameCell[] gameCells : map) {
             Arrays.fill(gameCells, GameCell.EMPTY);
         }
 
         // Fill the map
-        buildMap();
+        if (fill)
+            buildMap();
 
         printMap();
     }
@@ -63,6 +62,10 @@ public class GameMap {
         };
     }
 
+    public GameCell getCell(Coordinates coordinates) {
+        return getCell(coordinates.getX(), coordinates.getY());
+    }
+
     public GameCell getCell(int x, int y) {
         if (x >= 10 || y >= 10)
             throw new RuntimeException("Invalidate coordinates!");
@@ -70,20 +73,28 @@ public class GameMap {
         return map[x][y];
     }
 
+    public void setCell(Coordinates coordinates, GameCell newStatus) {
+        map[coordinates.getX()][coordinates.getY()] = newStatus;
+    }
+
 
     public void addBoat(int length, int x, int y, BoatOrientation orientation) {
+        var coordinates = new ArrayList<Coordinates>();
+
         while (length > 0) {
-            if (getCell(x, y) != GameCell.EMPTY)
-                throw new RuntimeException("Cannot add a boat at the location (" + x + ";" + y + ") : the cell is busy!");
 
             map[x][y] = GameCell.BOAT;
             length--;
+
+            coordinates.add(new Coordinates(x, y));
 
             switch (orientation) {
                 case HORIZONTAL -> x++;
                 case VERTICAL -> y++;
             }
         }
+
+        boats.add(coordinates);
     }
 
     public void printMap() {
@@ -93,4 +104,26 @@ public class GameMap {
         }
         System.out.println(" .... ");
     }
+
+    public boolean hasShipLeft() {
+        for (var row : map) {
+            if (Arrays.stream(row).anyMatch(s -> s == GameCell.BOAT))
+                return true;
+        }
+        return false;
+    }
+
+    public FireResult hit(Coordinates coordinates) {
+        if (getCell(coordinates) != GameCell.BOAT)
+            return FireResult.MISS;
+
+        var first = boats.stream().filter(s -> s.contains(coordinates)).findFirst();
+        assert (first.isPresent());
+        first.get().remove(coordinates);
+
+        setCell(coordinates, GameCell.SUCCESSFUL_FIRE);
+
+        return first.get().isEmpty() ? FireResult.SUNK : FireResult.HIT;
+    }
+
 }

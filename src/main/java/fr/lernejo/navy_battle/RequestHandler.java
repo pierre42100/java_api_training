@@ -27,6 +27,20 @@ public class RequestHandler {
         }
     }
 
+    /**
+     * Get a query parameter included in the request
+     */
+    public String getQueryParameter(String name) throws IOException {
+        for (var key : exchange.getRequestURI().getQuery().split("&")) {
+            var split = key.split("=");
+
+            if (split.length == 2 && split[0].equals(name))
+                return split[1];
+        }
+
+        throw new IOException("Parameter " + name + " missing in the URL!");
+    }
+
     public void sendString(int status, String test) throws IOException {
         byte[] bytes = test.getBytes();
         exchange.sendResponseHeaders(status, bytes.length);
