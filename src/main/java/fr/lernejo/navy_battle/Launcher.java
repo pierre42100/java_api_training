@@ -2,6 +2,7 @@ package fr.lernejo.navy_battle;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import fr.lernejo.navy_battle.prototypes.GameMap;
 import fr.lernejo.navy_battle.prototypes.Option;
 import fr.lernejo.navy_battle.prototypes.ServerInfo;
 import org.json.JSONObject;
@@ -19,6 +20,7 @@ import java.util.concurrent.Executors;
 public class Launcher {
     private final HttpClient client = HttpClient.newHttpClient();
 
+    private final Option<GameMap> map = new Option<>();
     private final Option<ServerInfo> localServer = new Option<>();
     private final Option<ServerInfo> remoteServer = new Option<>();
 
@@ -75,12 +77,8 @@ public class Launcher {
      */
     public void startGame(RequestHandler handler) throws IOException {
         try {
-            if (remoteServer.isNotEmpty()) {
-                handler.sendString(400, "I'm sorry, I have already another player dude!");
-                return;
-            }
-
             remoteServer.set(ServerInfo.fromJSON(handler.getJSONObject()));
+            map.set(new GameMap());
             System.out.println("Will fight against " + remoteServer.get().getUrl());
 
             handler.sendJSON(202, localServer.get().toJSON());
@@ -96,10 +94,10 @@ public class Launcher {
      */
     public void requestStart(String server) {
         try {
+            map.set(new GameMap());
             var response = sendHTTPRequest(server + "/api/game/start", this.localServer.get().toJSON());
 
             this.remoteServer.set(ServerInfo.fromJSON(response));
-
             System.out.println("Will fight against " + remoteServer.get().getUrl());
 
         } catch (Exception e) {
