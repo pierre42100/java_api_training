@@ -25,7 +25,7 @@ public class Launcher {
     private final Option<ServerInfo> remoteServer = new Option<>();
 
     public static void main(String[] args) {
-        try {
+        try {new GameMap();
             if (args.length == 0) {
                 System.err.println("Usage: Launcher [port] {server_url}");
                 System.exit(-1);
