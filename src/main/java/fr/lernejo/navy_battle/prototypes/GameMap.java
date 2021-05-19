@@ -14,10 +14,10 @@ public class GameMap {
         }
 
         // Fill the map
-        if (fill)
+        if (fill) {
             buildMap();
-
-        printMap();
+            printMap();
+        }
     }
 
     public int getHeight() {
@@ -111,6 +111,17 @@ public class GameMap {
                 return true;
         }
         return false;
+    }
+
+    public Coordinates getNextPlaceToHit() {
+        for (int i = 0; i < getWidth(); i++) {
+            for (int j = 0; j < getHeight(); j++) {
+                if (getCell(i, j) == GameCell.EMPTY)
+                    return new Coordinates(i, j);
+            }
+        }
+
+        throw new RuntimeException("The other player is a cheater and / or a liar!");
     }
 
     public FireResult hit(Coordinates coordinates) {

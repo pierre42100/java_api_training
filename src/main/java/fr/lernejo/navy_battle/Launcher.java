@@ -2,10 +2,7 @@ package fr.lernejo.navy_battle;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import fr.lernejo.navy_battle.prototypes.Coordinates;
-import fr.lernejo.navy_battle.prototypes.GameMap;
-import fr.lernejo.navy_battle.prototypes.Option;
-import fr.lernejo.navy_battle.prototypes.ServerInfo;
+import fr.lernejo.navy_battle.prototypes.*;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -87,6 +84,8 @@ public class Launcher {
 
             handler.sendJSON(202, localServer.get().toJSON());
 
+            fire();
+
         } catch (Exception e) {
             e.printStackTrace();
             handler.sendString(400, e.getMessage());
@@ -100,7 +99,7 @@ public class Launcher {
         try {
             localMap.set(new GameMap(true));
             remoteMap.set(new GameMap(false));
-            var response = sendHTTPRequest(server + "/api/game/start", this.localServer.get().toJSON());
+            var response = sendPOSTRequest(server + "/api/game/start", this.localServer.get().toJSON());
 
             this.remoteServer.set(ServerInfo.fromJSON(response));
             System.out.println("Will fight against " + remoteServer.get().getUrl());
@@ -109,6 +108,33 @@ public class Launcher {
             e.printStackTrace();
             System.err.println("Failed to start game!");
         }
+    }
+
+    /**
+     * Fire on adversary
+     */
+    public void fire() throws IOException, InterruptedException {
+        Coordinates coordinates = remoteMap.get().getNextPlaceToHit();
+        var response =
+            sendGETRequest(remoteServer.get().getUrl() + "/api/game/fire?cell=" + coordinates.toString());
+
+        if (!response.getBoolean("shipLeft")) {
+            System.out.println("Hourray we won the game!!! Pierre is the best!!!");
+            System.out.println("The play is over!!!!");
+            System.out.println("Adversary map:");
+            remoteMap.get().printMap();
+
+            System.out.println("Our map:");
+            localMap.get().printMap();
+            return;
+        }
+
+        var result = FireResult.fromAPI(response.getString("consequence"));
+
+        if (result == FireResult.MISS)
+            remoteMap.get().setCell(coordinates, GameCell.MISSED_FIRE);
+        else
+            remoteMap.get().setCell(coordinates, GameCell.SUCCESSFUL_FIRE);
     }
 
     /**
@@ -126,6 +152,12 @@ public class Launcher {
             response.put("shipLeft", localMap.get().hasShipLeft());
 
             handler.sendJSON(200, response);
+
+            if (localMap.get().hasShipLeft()) {
+                fire();
+            } else {
+                System.out.println("We have lost the game :(");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             handler.sendString(400, e.getMessage());
@@ -135,7 +167,7 @@ public class Launcher {
     /**
      * Send POST request
      */
-    public JSONObject sendHTTPRequest(String url, JSONObject obj) throws IOException, InterruptedException {
+    public JSONObject sendPOSTRequest(String url, JSONObject obj) throws IOException, InterruptedException {
         HttpRequest requetePost = HttpRequest.newBuilder()
             .uri(URI.create(url))
             .setHeader("Accept", "application/json")
@@ -144,6 +176,20 @@ public class Launcher {
             .build();
 
         var response = client.send(requetePost, HttpResponse.BodyHandlers.ofString());
+        return new JSONObject(response.body());
+    }
+
+    /**
+     * Send GET request
+     */
+    public JSONObject sendGETRequest(String url) throws IOException, InterruptedException {
+        HttpRequest requeteGET = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .setHeader("Accept", "application/json")
+            .GET()
+            .build();
+
+        var response = client.send(requeteGET, HttpResponse.BodyHandlers.ofString());
         return new JSONObject(response.body());
     }
 }
