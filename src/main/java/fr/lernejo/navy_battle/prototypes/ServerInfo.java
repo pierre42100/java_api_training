@@ -26,7 +26,7 @@ public class ServerInfo {
         return message;
     }
 
-    public JSONObject toJSON(){
+    public JSONObject toJSON() {
         JSONObject obj = new JSONObject();
         obj.put("id", id);
         obj.put("url", url);
@@ -39,6 +39,14 @@ public class ServerInfo {
             object.getString("id"),
             object.getString("url"),
             object.getString("message")
+        );
+    }
+
+    public ServerInfo withURL(String url) {
+        return new ServerInfo(
+            this.id,
+            url,
+            this.message
         );
     }
 }

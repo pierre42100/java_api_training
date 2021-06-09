@@ -101,7 +101,7 @@ public class Launcher {
             remoteMap.set(new GameMap(false));
             var response = sendPOSTRequest(server + "/api/game/start", this.localServer.get().toJSON());
 
-            this.remoteServer.set(ServerInfo.fromJSON(response));
+            this.remoteServer.set(ServerInfo.fromJSON(response).withURL(server));
             System.out.println("Will fight against " + remoteServer.get().getUrl());
 
         } catch (Exception e) {
