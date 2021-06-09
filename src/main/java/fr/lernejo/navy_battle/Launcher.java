@@ -69,17 +69,7 @@ public class Launcher {
         exchange.sendResponseHeaders(200, body.length());
         try (OutputStream os = exchange.getResponseBody()) { // (1)
             os.write(body.getBytes());
-            os.flush();
         }
-
-        new Thread(() -> {
-            try {
-                Thread.sleep(10);
-                System.exit(0);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
     }
 
     /**
