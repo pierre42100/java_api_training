@@ -13,7 +13,7 @@ public class PlayGameTest extends BaseHttpTests {
 
             var srv = new ServerInfo(
                 "0xDEADBEEF",
-                "http://localhost:" + String.valueOf(port + 1), "Tests are the best!"
+                "http://localhost:" + (port + 1), "Tests are the best!"
             );
             var res = doPost(port, "api/game/start", srv.toJSON());
 
@@ -30,6 +30,21 @@ public class PlayGameTest extends BaseHttpTests {
 
             try (var clientOne = new HttpServerTest()) {
                 clientOne.startServer(localPort, "http://localhost:" + standalonePort);
+
+                clientOne.waitForEndOfGame();
+            }
+        }
+    }
+
+    @Test
+    public void playSecondPart() throws Exception {
+        int standalonePort = getRandomPort(3);
+        int clientPort = standalonePort + 1;
+        try (var clientOne = new HttpServerTest()) {
+            clientOne.startServer(clientPort, null);
+            waitForPortToBeAvailable(clientPort);
+
+            try (var serverOne = new ScenariosTest(standalonePort, "http://localhost:" + clientPort)) {
 
                 clientOne.waitForEndOfGame();
             }

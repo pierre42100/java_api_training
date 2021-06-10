@@ -18,9 +18,9 @@ public class BaseHttpTests {
     private final HttpClient client = HttpClient.newHttpClient();
 
     protected int getRandomPort(int offset) {
-        int port = 0;
+        int port;
         do {
-            port = random.nextInt(300) + (offset * 300) + 6000;
+            port = random.nextInt(200) + (offset * 200) + 6000;
         } while(!freePort(port));
 
         return port;
