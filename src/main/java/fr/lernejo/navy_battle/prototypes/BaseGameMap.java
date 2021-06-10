@@ -1,21 +1,19 @@
 package fr.lernejo.navy_battle.prototypes;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-public class AbstractGameMap {
+public class BaseGameMap {
     private final Integer[] BOATS = {5, 4, 3, 3, 2};
     private final GameCell[][] map = new GameCell[10][10];
     private final List<List<Coordinates>> boats = new ArrayList<>();
 
-    public AbstractGameMap(boolean fill) {
+    public BaseGameMap(boolean fill) {
         for (GameCell[] gameCells : map) {
             Arrays.fill(gameCells, GameCell.EMPTY);
         }
 
         if (fill) {
             buildMap();
-            printMap();
         }
     }
 
@@ -31,17 +29,13 @@ public class AbstractGameMap {
         var random = new Random();
         var boats = new ArrayList<>(Arrays.asList(BOATS));
         Collections.shuffle(boats);
-
         while (!boats.isEmpty()) {
             int boat = boats.get(0);
-
             int x = Math.abs(random.nextInt()) % getWidth();
             int y = Math.abs(random.nextInt()) % getHeight();
             var orientation = random.nextBoolean() ? BoatOrientation.HORIZONTAL : BoatOrientation.VERTICAL;
-
             if (!canFit(boat, x, y, orientation))
                 continue;
-
             addBoat(boat, x, y, orientation);
             boats.remove(0);
         }
@@ -53,7 +47,6 @@ public class AbstractGameMap {
         while (length > 0) {
             map[x][y] = GameCell.BOAT;
             length--;
-
             coordinates.add(new Coordinates(x, y));
 
             switch (orientation) {
@@ -61,7 +54,6 @@ public class AbstractGameMap {
                 case VERTICAL -> y++;
             }
         }
-
         boats.add(coordinates);
     }
 
@@ -89,24 +81,8 @@ public class AbstractGameMap {
         return map[x][y];
     }
 
-    public void setCell(Coordinates coordinates, GameCell newStatus) {
-        map[coordinates.getX()][coordinates.getY()] = newStatus;
-    }
-
-    public void printMap() {
-        System.out.println(" .... ");
-        for (GameCell[] row : map) {
-            System.out.println(Arrays.stream(row).map(GameCell::getLetter).collect(Collectors.joining(" ")));
-        }
-        System.out.println(" .... ");
-    }
-
-    public boolean hasShipLeft() {
-        for (var row : map) {
-            if (Arrays.stream(row).anyMatch(s -> s == GameCell.BOAT))
-                return true;
-        }
-        return false;
+    protected GameCell[][] getMap() {
+        return map;
     }
 
     public List<List<Coordinates>> getBoats() {

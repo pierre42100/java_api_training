@@ -3,7 +3,7 @@ package fr.lernejo.navy_battle.prototypes;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GameMap extends AbstractGameMap {
+public class GameMap extends WriteableGameMap {
     private final List<Coordinates> positionsToTest = new ArrayList<>();
 
     public GameMap(boolean fill) {
