@@ -8,7 +8,7 @@ public class GameMap {
     private final GameCell[][] map = new GameCell[10][10];
     private final List<List<Coordinates>> boats = new ArrayList<>();
 
-    private final Option<Coordinates> lastSuccessfulFire = new Option<>();
+    private final List<Coordinates> positionsToTest = new ArrayList<>();
 
     public GameMap(boolean fill) {
         for (GameCell[] gameCells : map) {
@@ -78,8 +78,14 @@ public class GameMap {
     public void setCell(Coordinates coordinates, GameCell newStatus) {
         map[coordinates.getX()][coordinates.getY()] = newStatus;
 
-        if (newStatus == GameCell.SUCCESSFUL_FIRE)
-            lastSuccessfulFire.set(coordinates);
+        if (newStatus == GameCell.SUCCESSFUL_FIRE) {
+            positionsToTest.addAll(List.of(
+                coordinates.plus(-1, 0),
+                coordinates.plus(0, -1),
+                coordinates.plus(1, 0),
+                coordinates.plus(0, 1)
+            ));
+        }
     }
 
 
@@ -120,7 +126,7 @@ public class GameMap {
 
     public Coordinates getNextPlaceToHit() {
         Coordinates coordinates = null;
-        if (lastSuccessfulFire.isNotEmpty()) {
+        if (positionsToTest.size() > 0) {
             coordinates = fireAroundSuccessfulHit();
         }
 
@@ -134,20 +140,13 @@ public class GameMap {
     }
 
     private Coordinates fireAroundSuccessfulHit() {
-        var firePos = lastSuccessfulFire.get();
-        var possiblePos = List.of(
-            firePos.plus(-1, 0),
-            firePos.plus(0, -1),
-            firePos.plus(1, 0),
-            firePos.plus(0, 1)
-        );
+        while(positionsToTest.size() > 0) {
+            var pos = positionsToTest.remove(0);
 
-        var pos = possiblePos.stream().filter(c -> getCell(c) == GameCell.EMPTY).findFirst();
+            if (getCell(pos) == GameCell.EMPTY)
+                return pos;
+        }
 
-        if (pos.isPresent())
-            return pos.get();
-
-        lastSuccessfulFire.unset();
         return null;
     }
 
