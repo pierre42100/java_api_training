@@ -36,12 +36,7 @@ public class GamePlay {
     }
 
     public boolean localMapShipLeft() {
-        boolean hasLeft = localMap.hasShipLeft();
-
-        if (!hasLeft)
-            status.set(GameStatus.LOST);
-
-        return hasLeft;
+        return localMap.hasShipLeft();
     }
 
     public FireResult hit(Coordinates coordinates) {
@@ -49,6 +44,8 @@ public class GamePlay {
     }
 
     public GameStatus getStatus() {
+        if (!localMap.hasShipLeft())
+            status.set(GameStatus.LOST);
         return status.get();
     }
 }
