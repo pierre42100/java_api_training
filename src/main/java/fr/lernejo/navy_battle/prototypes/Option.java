@@ -6,6 +6,12 @@ import java.util.List;
 public class Option<T> {
     private final List<T> list = new ArrayList<>();
 
+    public Option() { }
+
+    public Option(T obj) {
+        set(obj);
+    }
+
     public void set(T obj) {
         list.clear();
         list.add(obj);

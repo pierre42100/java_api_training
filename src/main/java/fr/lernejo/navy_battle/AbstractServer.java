@@ -2,6 +2,7 @@ package fr.lernejo.navy_battle;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import fr.lernejo.navy_battle.prototypes.Option;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -15,16 +16,20 @@ import java.util.concurrent.Executors;
 
 public abstract class AbstractServer {
     protected final HttpClient client = HttpClient.newHttpClient();
+    protected final Option<HttpServer> server =  new Option<>();
 
-    /**
-     * Start the server
-     */
     public void startServer(int port, String connectURL) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        var server = HttpServer.create(new InetSocketAddress(port), 0);
         server.setExecutor(Executors.newSingleThreadExecutor());
         server.createContext("/ping", this::handlePing);
         createContextes(server);
         server.start();
+
+        this.server.set(server);
+    }
+
+    public void stopServer() {
+        this.server.get().stop(0);
     }
 
     private void handlePing(HttpExchange exchange) throws IOException {

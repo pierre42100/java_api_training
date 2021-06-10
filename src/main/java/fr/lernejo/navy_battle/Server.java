@@ -13,7 +13,7 @@ import java.util.UUID;
 public class Server extends AbstractServer {
     private final Option<ServerInfo> localServer = new Option<>();
     private final Option<ServerInfo> remoteServer = new Option<>();
-    private final Option<GamePlay> gamePlay = new Option<>();
+    protected final Option<GamePlay> gamePlay = new Option<>();
 
     @Override
     public void startServer(int port, String connectURL) throws IOException {
@@ -55,6 +55,7 @@ public class Server extends AbstractServer {
     public void requestStart(String server) {
         try {
             gamePlay.set(new GamePlay());
+            this.remoteServer.set(new ServerInfo("temp", server, "good luck"));
             var response = sendPOSTRequest(server + "/api/game/start", this.localServer.get().toJSON());
 
             this.remoteServer.set(ServerInfo.fromJSON(response).withURL(server));

@@ -1,13 +1,11 @@
 package fr.lernejo.navy_battle;
 
-import fr.lernejo.navy_battle.prototypes.Coordinates;
-import fr.lernejo.navy_battle.prototypes.FireResult;
-import fr.lernejo.navy_battle.prototypes.GameCell;
-import fr.lernejo.navy_battle.prototypes.GameMap;
+import fr.lernejo.navy_battle.prototypes.*;
 
 public class GamePlay {
     private final GameMap localMap;
     private final GameMap remoteMap;
+    private final Option<GameStatus> status = new Option<>(GameStatus.ONGOING);
 
     public GamePlay() {
         localMap = new GameMap(true);
@@ -15,6 +13,8 @@ public class GamePlay {
     }
 
     public void wonGame() {
+        status.set(GameStatus.WON);
+
         System.out.println("Hourray we won the game!!! Pierre is the best!!!");
         System.out.println("The play is over!!!!");
         System.out.println("Adversary map:");
@@ -36,10 +36,19 @@ public class GamePlay {
     }
 
     public boolean localMapShipLeft() {
-        return localMap.hasShipLeft();
+        boolean hasLeft = localMap.hasShipLeft();
+
+        if (!hasLeft)
+            status.set(GameStatus.LOST);
+
+        return hasLeft;
     }
 
     public FireResult hit(Coordinates coordinates) {
         return localMap.hit(coordinates);
+    }
+
+    public GameStatus getStatus() {
+        return status.get();
     }
 }
