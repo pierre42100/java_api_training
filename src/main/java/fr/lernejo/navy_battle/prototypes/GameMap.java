@@ -65,7 +65,7 @@ public class GameMap extends WriteableGameMap {
     }
 
     private Coordinates bruteForceHit() {
-        System.err.println("Brute force required!");
+        // System.err.println("Brute force required!");
         for (int i = 0; i < getWidth(); i++) {
             for (int j = 0; j < getHeight(); j++) {
                 if (getCell(i, j) == GameCell.EMPTY)
