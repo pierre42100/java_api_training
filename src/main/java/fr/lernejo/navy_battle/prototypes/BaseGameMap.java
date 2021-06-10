@@ -31,8 +31,8 @@ public class BaseGameMap {
         Collections.shuffle(boats);
         while (!boats.isEmpty()) {
             int boat = boats.get(0);
-            int x = Math.abs(random.nextInt()) % getWidth();
-            int y = Math.abs(random.nextInt()) % getHeight();
+            int x = Math.abs(random.nextInt()) % (getWidth() - 2);
+            int y = Math.abs(random.nextInt()) % (getHeight() - 2);
             var orientation = random.nextBoolean() ? BoatOrientation.HORIZONTAL : BoatOrientation.VERTICAL;
             if (!canFit(boat, x, y, orientation))
                 continue;
