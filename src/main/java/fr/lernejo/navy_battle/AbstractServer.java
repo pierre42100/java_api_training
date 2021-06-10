@@ -20,12 +20,11 @@ public abstract class AbstractServer {
 
     public void startServer(int port, String connectURL) throws IOException {
         var server = HttpServer.create(new InetSocketAddress(port), 0);
+        this.server.set(server);
         server.setExecutor(Executors.newSingleThreadExecutor());
         server.createContext("/ping", this::handlePing);
         createContextes(server);
         server.start();
-
-        this.server.set(server);
     }
 
     public void stopServer() {

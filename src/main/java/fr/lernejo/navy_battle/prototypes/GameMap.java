@@ -32,9 +32,8 @@ public class GameMap extends WriteableGameMap {
 
     public Coordinates getNextPlaceToHit() {
         Coordinates coordinates = null;
-        if (positionsToTest.size() > 0) {
+        if (!positionsToTest.isEmpty())
             coordinates = fireAroundSuccessfulHit();
-        }
 
         if (coordinates == null && !lightHitPositions.isEmpty())
             coordinates = lightHit();
@@ -47,12 +46,9 @@ public class GameMap extends WriteableGameMap {
 
     private Coordinates fireAroundSuccessfulHit() {
         while (positionsToTest.size() > 0) {
-            var pos = positionsToTest.remove(0);
-
-            if (getCell(pos) == GameCell.EMPTY)
-                return pos;
+            var c = positionsToTest.remove(0);
+            if (getCell(c) == GameCell.EMPTY) return c;
         }
-
         return null;
     }
 

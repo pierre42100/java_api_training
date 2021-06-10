@@ -5,21 +5,22 @@ import org.junit.jupiter.api.Test;
 
 public class PlayGameTest extends BaseHttpTests {
 
-    @Test
-    public void startGame() throws Exception {
+    /*@Test
+    public void playAgainHimself() throws Exception {
         int port = getRandomPort(1);
         try (var serverOne = new ScenariosTest(port)) {
             waitForPortToBeAvailable(port);
 
             var srv = new ServerInfo(
                 "0xDEADBEEF",
-                "http://localhost:" + (port + 1), "Tests are the best!"
+                "http://localhost:" + (port), "Tests are the best!"
             );
             var res = doPost(port, "api/game/start", srv.toJSON());
 
             ServerInfo.fromJSON(res);
+
         }
-    }
+    }*/
 
     @Test
     public void playStandalonePart() throws Exception {
