@@ -5,9 +5,15 @@ import java.util.List;
 
 public class GameMap extends WriteableGameMap {
     private final List<Coordinates> positionsToTest = new ArrayList<>();
+    private final List<Coordinates> lightHitPositions = new ArrayList<>();
 
     public GameMap(boolean fill) {
         super(fill);
+        for (int i = 0; i < getWidth(); i++) {
+            for (int j = i % 2; j < getHeight(); j += 2) {
+                lightHitPositions.add(new Coordinates(i, j));
+            }
+        }
     }
 
     public void setCell(Coordinates coordinates, GameCell newStatus) {
@@ -30,7 +36,7 @@ public class GameMap extends WriteableGameMap {
             coordinates = fireAroundSuccessfulHit();
         }
 
-        if (coordinates == null)
+        if (coordinates == null && !lightHitPositions.isEmpty())
             coordinates = lightHit();
 
         if (coordinates == null)
@@ -51,13 +57,10 @@ public class GameMap extends WriteableGameMap {
     }
 
     private Coordinates lightHit() {
-        for (int i = 0; i < getWidth(); i++) {
-            for (int j = i % 2; j < getHeight(); j += 2) {
-                if (getCell(i, j) == GameCell.EMPTY)
-                    return new Coordinates(i, j);
-            }
+        while (lightHitPositions.size() > 0) {
+            var c = lightHitPositions.remove(0);
+            if (getCell(c) == GameCell.EMPTY) return c;
         }
-
         return null;
     }
 
