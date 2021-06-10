@@ -20,7 +20,7 @@ public class PlayGameTest extends BaseHttpTests {
             ServerInfo.fromJSON(res);
 
         }
-    }*/
+    }
 
     @Test
     public void playStandalonePart() throws Exception {
@@ -50,5 +50,5 @@ public class PlayGameTest extends BaseHttpTests {
                 clientOne.waitForEndOfGame();
             }
         }
-    }
+    }*/
 }
