@@ -2,7 +2,10 @@ package fr.lernejo.navy_battle;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
-import fr.lernejo.navy_battle.prototypes.*;
+import fr.lernejo.navy_battle.prototypes.Coordinates;
+import fr.lernejo.navy_battle.prototypes.FireResult;
+import fr.lernejo.navy_battle.prototypes.Option;
+import fr.lernejo.navy_battle.prototypes.ServerInfo;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -18,10 +21,9 @@ import java.util.concurrent.Executors;
 public class Launcher {
     private final HttpClient client = HttpClient.newHttpClient();
 
-    private final Option<GameMap> localMap = new Option<>();
-    private final Option<GameMap> remoteMap = new Option<>();
     private final Option<ServerInfo> localServer = new Option<>();
     private final Option<ServerInfo> remoteServer = new Option<>();
+    private final Option<GamePlay> gamePlay = new Option<>();
 
     public static void main(String[] args) {
         try {
@@ -78,8 +80,7 @@ public class Launcher {
     public void startGame(RequestHandler handler) throws IOException {
         try {
             remoteServer.set(ServerInfo.fromJSON(handler.getJSONObject()));
-            localMap.set(new GameMap(true));
-            remoteMap.set(new GameMap(false));
+            gamePlay.set(new GamePlay());
             System.out.println("Will fight against " + remoteServer.get().getUrl());
 
             handler.sendJSON(202, localServer.get().toJSON());
@@ -97,8 +98,7 @@ public class Launcher {
      */
     public void requestStart(String server) {
         try {
-            localMap.set(new GameMap(true));
-            remoteMap.set(new GameMap(false));
+            gamePlay.set(new GamePlay());
             var response = sendPOSTRequest(server + "/api/game/start", this.localServer.get().toJSON());
 
             this.remoteServer.set(ServerInfo.fromJSON(response).withURL(server));
@@ -114,27 +114,16 @@ public class Launcher {
      * Fire on adversary
      */
     public void fire() throws IOException, InterruptedException {
-        Coordinates coordinates = remoteMap.get().getNextPlaceToHit();
+        Coordinates coordinates = gamePlay.get().getNextPlaceToHit();
         var response =
             sendGETRequest(remoteServer.get().getUrl() + "/api/game/fire?cell=" + coordinates.toString());
 
         if (!response.getBoolean("shipLeft")) {
-            System.out.println("Hourray we won the game!!! Pierre is the best!!!");
-            System.out.println("The play is over!!!!");
-            System.out.println("Adversary map:");
-            remoteMap.get().printMap();
-
-            System.out.println("Our map:");
-            localMap.get().printMap();
+            gamePlay.get().wonGame();
             return;
         }
 
-        var result = FireResult.fromAPI(response.getString("consequence"));
-
-        if (result == FireResult.MISS)
-            remoteMap.get().setCell(coordinates, GameCell.MISSED_FIRE);
-        else
-            remoteMap.get().setCell(coordinates, GameCell.SUCCESSFUL_FIRE);
+        gamePlay.get().setFireResult(coordinates, FireResult.fromAPI(response.getString("consequence")));
     }
 
     /**
@@ -142,18 +131,15 @@ public class Launcher {
      */
     public void handleFire(RequestHandler handler) throws IOException {
         try {
-            String cell = handler.getQueryParameter("cell");
-            var pos = new Coordinates(cell);
-
-            var res = localMap.get().hit(pos);
+            var pos = new Coordinates(handler.getQueryParameter("cell"));
 
             var response = new JSONObject();
-            response.put("consequence", res.toAPI());
-            response.put("shipLeft", localMap.get().hasShipLeft());
+            response.put("consequence", gamePlay.get().hit(pos).toAPI());
+            response.put("shipLeft", gamePlay.get().localMapShipLeft());
 
             handler.sendJSON(200, response);
 
-            if (localMap.get().hasShipLeft()) {
+            if (gamePlay.get().localMapShipLeft()) {
                 fire();
             } else {
                 System.out.println("We have lost the game :(");
