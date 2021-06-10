@@ -27,6 +27,18 @@ public class Coordinates {
         return y;
     }
 
+    public Coordinates plus(int x, int y) {
+        x = x + this.x;
+        y = y + this.y;
+
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        if (x >= 10) x = 9;
+        if (y >= 10) y = 9;
+
+        return new Coordinates(x, y);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -25,4 +25,8 @@ public class Option<T> {
 
         return list.get(0);
     }
+
+    public void unset() {
+        list.clear();
+    }
 }

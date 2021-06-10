@@ -8,6 +8,8 @@ public class GameMap {
     private final GameCell[][] map = new GameCell[10][10];
     private final List<List<Coordinates>> boats = new ArrayList<>();
 
+    private final Option<Coordinates> lastSuccessfulFire = new Option<>();
+
     public GameMap(boolean fill) {
         for (GameCell[] gameCells : map) {
             Arrays.fill(gameCells, GameCell.EMPTY);
@@ -75,6 +77,9 @@ public class GameMap {
 
     public void setCell(Coordinates coordinates, GameCell newStatus) {
         map[coordinates.getX()][coordinates.getY()] = newStatus;
+
+        if (newStatus == GameCell.SUCCESSFUL_FIRE)
+            lastSuccessfulFire.set(coordinates);
     }
 
 
@@ -114,6 +119,51 @@ public class GameMap {
     }
 
     public Coordinates getNextPlaceToHit() {
+        Coordinates coordinates = null;
+        if (lastSuccessfulFire.isNotEmpty()) {
+            coordinates = fireAroundSuccessfulHit();
+        }
+
+        if (coordinates == null)
+            coordinates = lightHit();
+
+        if (coordinates == null)
+            coordinates = bruteForceHit();
+
+        return coordinates;
+    }
+
+    private Coordinates fireAroundSuccessfulHit() {
+        var firePos = lastSuccessfulFire.get();
+        var possiblePos = List.of(
+            firePos.plus(-1, 0),
+            firePos.plus(0, -1),
+            firePos.plus(1, 0),
+            firePos.plus(0, 1)
+        );
+
+        var pos = possiblePos.stream().filter(c -> getCell(c) == GameCell.EMPTY).findFirst();
+
+        if (pos.isPresent())
+            return pos.get();
+
+        lastSuccessfulFire.unset();
+        return null;
+    }
+
+    private Coordinates lightHit() {
+        for (int i = 0; i < getWidth(); i++) {
+            for (int j = i % 2; j < getHeight(); j += 2) {
+                if (getCell(i, j) == GameCell.EMPTY)
+                    return new Coordinates(i, j);
+            }
+        }
+
+        return null;
+    }
+
+    private Coordinates bruteForceHit() {
+        System.err.println("Brute force required!");
         for (int i = 0; i < getWidth(); i++) {
             for (int j = 0; j < getHeight(); j++) {
                 if (getCell(i, j) == GameCell.EMPTY)
